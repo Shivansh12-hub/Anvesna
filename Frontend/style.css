@@ -1,0 +1,141 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f9f9f9;
+  color: #333;
+  padding-bottom: 50px;
+}
+
+/* Header */
+header {
+  background: #ff6f61;
+  color: white;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 0 0 15px 15px;
+  margin-bottom: 1rem;
+}
+
+/* Navbar */
+nav {
+  display: flex;
+  justify-content: center;
+  background: #fff;
+  border-bottom: 2px solid #ddd;
+  padding: 0.5rem;
+  gap: 15px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #555;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+nav a.active, nav a:hover {
+  background: #ff6f61;
+  color: white;
+}
+
+/* Main Content */
+main {
+  padding: 1rem;
+  max-width: 600px;
+  margin: auto;
+}
+
+/* Stats on Home */
+.stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  flex: 1;
+  min-width: 150px;
+  background: white;
+  padding: 1rem;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Form */
+form label {
+  display: block;
+  margin: 0.5rem 0;
+}
+
+form input, textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.2rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  margin-top: 1rem;
+  background: #ff6f61;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #e65c50;
+}
+
+/* Risk Results */
+.risk-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.risk-low {
+  background: #d4edda;
+  color: #155724;
+}
+
+.risk-medium {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.risk-high {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Reports */
+.report-card {
+  background: white;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
