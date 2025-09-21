@@ -5,3 +5,6 @@ pandas
 keras
 flask
 flask-cors
+langchain
+langchain-groq
+
