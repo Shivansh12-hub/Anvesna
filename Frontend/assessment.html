@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GarbhSathi - Assessment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+      <h1>📝 Pregnancy Assessment</h1>
+  </header>
+
+  <nav>
+      <a href="home.html">🏠 Home</a>
+      <a href="assessment.html" class="active">📝 Assessment</a>
+      <a href="reports.html">📊 Reports</a>
+      <a href="alerts.html">⚠ Alerts</a>
+  </nav>
+
+  <main>
+      <form id="assessmentForm">
+          <label>Age: <input type="number" required></label><br>
+          <label>Systolic BP: <input type="number" required></label><br>
+          <label>Diastolic BP: <input type="number" required></label><br>
+          <label>Blood Sugar: <input type="number"></label><br>
+          <label>Body Temperature: <input type="number" step="0.1"></label><br>
+          <button type="submit">Submit</button>
+      </form>
+
+      <div id="resultBox" style="display:none;"></div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

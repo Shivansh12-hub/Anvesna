@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maternal Health Dashboard</title>
+<style>
+/* ===== Global Styles ===== */
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; color:#333; }
+.container { max-width:480px; margin:0 auto; padding:20px; min-height:100vh; }
+
+/* ===== Header ===== */
+.header { background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:20px; border-radius:20px; margin-bottom:20px; box-shadow:0 8px 32px rgba(31,38,135,0.37); text-align:center; }
+.header h1 { color:#667eea; font-size:24px; margin-bottom:10px; }
+.header p { color:#666; font-size:14px; }
+
+/* ===== Buttons ===== */
+.btn { padding:12px; border:none; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer; transition:transform 0.2s; }
+.btn:hover { transform:translateY(-1px); }
+.btn-primary { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; }
+.btn-secondary { background:#f8f9fa; color:#666; border:2px solid #e1e5e9; }
+.add-patient-btn { width:100%; padding:15px; border-radius:15px; font-weight:600; margin-bottom:20px; }
+.action-btn { flex:1; padding:8px; border-radius:8px; font-size:14px; font-weight:600; margin-right:5px; }
+.btn-report { background:linear-gradient(135deg,#4caf50 0%,#45a049 100%); color:#fff; }
+.btn-delete { background:linear-gradient(135deg,#f44336 0%,#d32f2f 100%); color:#fff; }
+
+/* ===== Form ===== */
+.patient-form { background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:20px; border-radius:20px; margin-bottom:20px; box-shadow:0 8px 32px rgba(31,38,135,0.37); display:none; }
+.form-group { margin-bottom:15px; }
+.form-group label { display:block; margin-bottom:5px; font-weight:600; color:#555; font-size:14px; }
+.form-group input, .form-group select { width:100%; padding:12px; border:2px solid #e1e5e9; border-radius:10px; font-size:16px; transition:border-color 0.3s; }
+.form-group input:focus, .form-group select:focus { outline:none; border-color:#667eea; }
+.form-actions { display:flex; gap:10px; margin-top:20px; }
+
+/* ===== Patients List ===== */
+.patients-list { display:flex; flex-direction:column; gap:15px; }
+.patient-card { background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:20px; border-radius:20px; box-shadow:0 8px 32px rgba(31,38,135,0.37); cursor:pointer; transition:transform 0.2s, box-shadow 0.2s; }
+.patient-card:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(31,38,135,0.5); }
+.patient-info { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.patient-name { font-size:18px; font-weight:700; color:#333; }
+.patient-age { background:#e3f2fd; color:#1976d2; padding:4px 12px; border-radius:15px; font-size:12px; font-weight:600; }
+.patient-details { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px; font-size:13px; }
+.detail-item { background:#f8f9fa; padding:8px 12px; border-radius:8px; }
+.detail-label { font-weight:600; color:#666; }
+.detail-value { color:#333; }
+
+/* ===== Modal ===== */
+.report-modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:none; z-index:1000; overflow-y:auto; }
+.report-content { max-width:480px; margin:20px auto; background:#fff; border-radius:20px; padding:20px; position:relative; }
+.close-btn { position:absolute; top:15px; right:15px; background:#f44336; color:#fff; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; }
+.risk-status { padding:10px 20px; border-radius:25px; font-weight:700; text-transform:uppercase; font-size:14px; margin-bottom:20px; text-align:center; }
+.risk-high { background:#ffebee; color:#c62828; }
+.risk-medium { background:#fff3e0; color:#ef6c00; }
+.risk-low { background:#e8f5e8; color:#2e7d32; }
+.summary-section, .risks-section { background:#f8f9fa; padding:15px; border-radius:15px; margin-bottom:20px; }
+.summary-title, .risks-title { font-size:18px; font-weight:700; color:#333; margin-bottom:15px; }
+.summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.summary-item { background:#fff; padding:10px; border-radius:8px; border-left:4px solid #667eea; }
+.summary-label { font-size:12px; color:#666; font-weight:600; }
+.summary-value { font-size:16px; color:#333; font-weight:700; }
+.risk-item { background:#fff5f5; border-left:4px solid #f56565; padding:15px; border-radius:8px; margin-bottom:10px; }
+.risk-name { font-weight:700; color:#c53030; margin-bottom:5px; }
+.risk-recommendation { color:#666; font-size:14px; }
+.loading { text-align:center; padding:20px; color:#666; }
+.spinner { border:3px solid #f3f3f3; border-top:3px solid #667eea; border-radius:50%; width:30px; height:30px; animation:spin 1s linear infinite; margin:0 auto 10px; }
+@keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+.empty-state { text-align:center; padding:40px 20px; color:#666; }
+.empty-state h3 { margin-bottom:10px; color:#333; }
+@media (max-width:768px){ .container{padding:10px;} .patient-details, .summary-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🤱 Maternal Health Dashboard</h1>
+    <p>AI-Powered Patient Risk Assessment</p>
+  </div>
+
+  <button class="add-patient-btn btn btn-primary" onclick="togglePatientForm()">➕ Add New Patient</button>
+
+  <div class="patient-form" id="patientForm">
+    <h3 style="color:#667eea;margin-bottom:20px;">Patient Information</h3>
+    <form id="addPatientForm">
+      <div class="form-group"><label for="patientName">Patient Name *</label><input type="text" id="patientName" required></div>
+      <div class="form-group"><label for="age">Age *</label><input type="number" id="age" min="18" max="50" required></div>
+      <div class="form-group"><label for="bs">Blood Sugar (BS) *</label><input type="number" id="bs" step="0.1" min="50" max="300" required></div>
+      <div class="form-group"><label for="bodyTemp">Body Temperature (°C) *</label><input type="number" id="bodyTemp" step="0.1" min="35" max="42" required></div>
+      <div class="form-group"><label for="preBmi">Pre-pregnancy BMI</label><input type="number" id="preBmi" step="0.1" min="15" max="45"></div>
+      <div class="form-group"><label for="gestationalAge">Gestational Age (weeks) *</label><input type="number" id="gestationalAge" min="1" max="42" required></div>
+      <div class="form-group"><label for="systolicBp">Systolic BP *</label><input type="number" id="systolicBp" min="80" max="200" required></div>
+      <div class="form-group"><label for="diastolicBp">Diastolic BP *</label><input type="number" id="diastolicBp" min="50" max="120" required></div>
+      <div class="form-group"><label for="hemoglobin">Hemoglobin Level *</label><input type="number" id="hemoglobin" step="0.1" min="7" max="18" required></div>
+      <div class="form-group"><label for="prenatalVisits">Number of Prenatal Visits *</label><input type="number" id="prenatalVisits" min="0" max="20" required></div>
+      <div class="form-group"><label for="diabetes">Diabetes</label><select id="diabetes"><option value="0">No</option><option value="1">Yes</option></select></div>
+      <div class="form-group"><label for="hypertension">Hypertension</label><select id="hypertension"><option value="0">No</option><option value="1">Yes</option></select></div>
+      <div class="form-group"><label for="smoking">Smoking Status</label><select id="smoking"><option value="0">Non-smoker</option><option value="1">Smoker</option></select></div>
+      <div class="form-group"><label for="alcohol">Alcohol Consumption</label><select id="alcohol"><option value="0">No</option><option value="1">Yes</option></select></div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="togglePatientForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Patient</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="patients-list" id="patientsList"></div>
+</div>
+
+<div class="report-modal" id="reportModal">
+  <div class="report-content">
+    <button class="close-btn" onclick="closeReportModal()">&times;</button>
+    <div id="reportContent"></div>
+  </div>
+</div>
+
+<script>
+// ===== Load Patients =====
+document.addEventListener('DOMContentLoaded', loadPatients);
+document.getElementById('addPatientForm').addEventListener('submit', e => { e.preventDefault(); addPatient(); });
+
+function togglePatientForm() {
+  const form = document.getElementById('patientForm');
+  form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+  if(form.style.display==='none') document.getElementById('addPatientForm').reset();
+}
+
+function addPatient() {
+  const patientId = 'patient_' + Date.now();
+  const name = document.getElementById('patientName').value;
+  const age = document.getElementById('age').value;
+  const bs = document.getElementById('bs').value;
+  const bodyTemp = document.getElementById('bodyTemp').value;
+  const systolicBP = document.getElementById('systolicBp').value;
+  const diastolicBP = document.getElementById('diastolicBp').value;
+
+  if(!name || !age || !bs || !bodyTemp || !systolicBP || !diastolicBP) {
+    alert("Please fill all mandatory fields!");
+    return;
+  }
+
+  const patientData = {
+    name,
+    age: parseInt(age),
+    bs: parseFloat(bs),
+    body_temp: parseFloat(bodyTemp),
+    blood_pressure_systolic: parseInt(systolicBP),
+    blood_pressure_diastolic: parseInt(diastolicBP),
+    pre_pregnancy_bmi: document.getElementById('preBmi').value ? parseFloat(document.getElementById('preBmi').value) : null,
+    gestational_age_weeks: document.getElementById('gestationalAge').value ? parseInt(document.getElementById('gestationalAge').value) : null,
+    hemoglobin_level: document.getElementById('hemoglobin').value ? parseFloat(document.getElementById('hemoglobin').value) : null,
+    number_of_prenatal_visits: document.getElementById('prenatalVisits').value ? parseInt(document.getElementById('prenatalVisits').value) : null,
+    has_diabetes: parseInt(document.getElementById('diabetes').value),
+    has_hypertension: parseInt(document.getElementById('hypertension').value),
+    smoking_status: parseInt(document.getElementById('smoking').value),
+    alcohol_consumption: parseInt(document.getElementById('alcohol').value),
+    dateAdded: new Date().toISOString()
+  };
+
+  const patients = JSON.parse(localStorage.getItem('maternalPatients')||'{}');
+  patients[patientId] = patientData;
+  localStorage.setItem('maternalPatients', JSON.stringify(patients));
+  togglePatientForm();
+  loadPatients();
+}
+
+function loadPatients() {
+  const patients = JSON.parse(localStorage.getItem('maternalPatients')||'{}');
+  const list = document.getElementById('patientsList');
+  if(!Object.keys(patients).length) {
+    list.innerHTML = `<div class="empty-state"><h3>No Patients Added</h3><p>Click "Add New Patient" to get started</p></div>`;
+    return;
+  }
+  list.innerHTML = '';
+  Object.keys(patients).forEach(id => list.appendChild(createPatientCard(id, patients[id])));
+}
+
+function createPatientCard(id, patient) {
+  const card = document.createElement('div');
+  card.className = 'patient-card';
+  card.innerHTML = `
+    <div class="patient-info"><div class="patient-name">${patient.name}</div><div class="patient-age">${patient.age} yrs</div></div>
+    <div class="patient-details">
+      <div class="detail-item"><div class="detail-label">Gestational Age</div><div class="detail-value">${patient.gestational_age_weeks || 'N/A'} wks</div></div>
+      <div class="detail-item"><div class="detail-label">Blood Pressure</div><div class="detail-value">${patient.blood_pressure_systolic}/${patient.blood_pressure_diastolic}</div></div>
+      <div class="detail-item"><div class="detail-label">Hemoglobin</div><div class="detail-value">${patient.hemoglobin_level || 'N/A'} g/dL</div></div>
+      <div class="detail-item"><div class="detail-label">Prenatal Visits</div><div class="detail-value">${patient.number_of_prenatal_visits || 'N/A'}</div></div>
+    </div>
+    <div class="patient-actions">
+      <button class="action-btn btn-report" onclick="generateReport('${id}')">📊 Generate AI Report</button>
+      <button class="action-btn btn-delete" onclick="deletePatient('${id}')">🗑️ Delete</button>
+    </div>
+  `;
+  return card;
+}
+
+function deletePatient(id) {
+  if(confirm('Are you sure?')){
+    const patients = JSON.parse(localStorage.getItem('maternalPatients')||'{}');
+    delete patients[id];
+    localStorage.setItem('maternalPatients', JSON.stringify(patients));
+    loadPatients();
+  }
+}
+
+// ===== Report Modal =====
+function showReportModal(){document.getElementById('reportModal').style.display='block';document.body.style.overflow='hidden';}
+function closeReportModal(){document.getElementById('reportModal').style.display='none';document.body.style.overflow='auto';}
+document.getElementById('reportModal').addEventListener('click', e=>{if(e.target===document.getElementById('reportModal')) closeReportModal();});
+
+function generateReport(id) {
+  const patients = JSON.parse(localStorage.getItem('maternalPatients')||'{}');
+  const patient = patients[id];
+  if(!patient){ alert('Patient not found'); return; }
+
+  showReportModal();
+  document.getElementById('reportContent').innerHTML = `<div class="loading"><div class="spinner"></div><p>Generating AI Report...</p></div>`;
+
+  setTimeout(() => {
+    // Example: backend AI report simulation with multiple risks
+    const aiReport = {
+      summary: {
+        age: patient.age,
+        bmi: patient.pre_pregnancy_bmi || "N/A",
+        blood_pressure: `${patient.blood_pressure_systolic}/${patient.blood_pressure_diastolic}`,
+        hemoglobin: patient.hemoglobin_level || "N/A",
+        gestational_age_weeks: patient.gestational_age_weeks || "N/A",
+        riskinpercent: Math.floor(Math.random()*40)+5
+      },
+      risks: [
+        {risk:"Hypertension Risk", recommendation:"Monitor Blood Pressure"},
+        {risk:"Low Hemoglobin", recommendation:"Increase Iron Intake"},
+        {risk:"Preterm Labor", recommendation:"Regular Prenatal Visits"},
+        {risk:"High BMI", recommendation:"Maintain Healthy Weight"}
+      ]
+    };
+
+    const riskStatus = aiReport.summary.riskinpercent>20?'High Risk': aiReport.summary.riskinpercent>10?'Medium Risk':'Low Risk';
+
+    displayReport(patient.name,{AI_report:aiReport,risk_status:[riskStatus]});
+  },500);
+}
+
+function displayReport(patientName, reportData){
+  const aiReport = reportData.AI_report;
+  const status = reportData.risk_status[0];
+  const statusClass = status.toLowerCase().includes('high')?'risk-high':status.toLowerCase().includes('medium')?'risk-medium':'risk-low';
+  
+  document.getElementById('reportContent').innerHTML=`
+    <div class="report-header"><h3 style="color:#333;margin-bottom:15px;">${patientName}</h3><div class="risk-status ${statusClass}">${status}</div></div>
+    <div class="summary-section"><div class="summary-title">📊 Health Summary</div><div class="summary-grid">
+      <div class="summary-item"><div class="summary-label">Age</div><div class="summary-value">${aiReport.summary.age} yrs</div></div>
+      <div class="summary-item"><div class="summary-label">BMI</div><div class="summary-value">${aiReport.summary.bmi}</div></div>
+      <div class="summary-item"><div class="summary-label">Blood Pressure</div><div class="summary-value">${aiReport.summary.blood_pressure}</div></div>
+      <div class="summary-item"><div class="summary-label">Hemoglobin</div><div class="summary-value">${aiReport.summary.hemoglobin}</div></div>
+      <div class="summary-item"><div class="summary-label">Gestational Age</div><div class="summary-value">${aiReport.summary.gestational_age_weeks}</div></div>
+      <div class="summary-item"><div class="summary-label">Risk %</div><div class="summary-value" style="color:#f56565;">${aiReport.summary.riskinpercent}%</div></div>
+    </div></div>
+    <div class="risks-section"><div class="risks-title">⚠️ Risk Assessment & Recommendations</div>
+      ${aiReport.risks.map(r=>`<div class="risk-item"><div class="risk-name">${r.risk}</div><div class="risk-recommendation">${r.recommendation}</div></div>`).join('')}
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:20px;" onclick="closeReportModal()">Close Report</button>
+  `;
+}
+</script>
+</body>
+</html>
