@@ -11,7 +11,7 @@ def hello_world():
 
 @app.route("/AI_Report", methods=["POST"])
 def report():
-    data = request.get_json()  # Get JSON from Postman
+    data = request.get_json(force=True)  # Get JSON from Postman
     if not data:
         return jsonify({"error": "No JSON payload provided"}), 400
 

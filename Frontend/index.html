@@ -209,37 +209,60 @@ function closeReportModal(){document.getElementById('reportModal').style.display
 document.getElementById('reportModal').addEventListener('click', e=>{if(e.target===document.getElementById('reportModal')) closeReportModal();});
 
 function generateReport(id) {
-  const patients = JSON.parse(localStorage.getItem('maternalPatients')||'{}');
+  const patients = JSON.parse(localStorage.getItem('maternalPatients') || '{}');
   const patient = patients[id];
-  if(!patient){ alert('Patient not found'); return; }
+  if (!patient) { 
+    alert('Patient not found'); 
+    return; 
+  }
 
   showReportModal();
-  document.getElementById('reportContent').innerHTML = `<div class="loading"><div class="spinner"></div><p>Generating AI Report...</p></div>`;
+  document.getElementById('reportContent').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Generating AI Report...</p>
+    </div>`;
 
-  setTimeout(() => {
-    // Example: backend AI report simulation with multiple risks
-    const aiReport = {
-      summary: {
-        age: patient.age,
-        bmi: patient.pre_pregnancy_bmi || "N/A",
-        blood_pressure: `${patient.blood_pressure_systolic}/${patient.blood_pressure_diastolic}`,
-        hemoglobin: patient.hemoglobin_level || "N/A",
-        gestational_age_weeks: patient.gestational_age_weeks || "N/A",
-        riskinpercent: Math.floor(Math.random()*40)+5
+  // Prepare numeric sample_risk array
+  const sample_risk = [
+    25, // example: you can adjust if needed
+    parseInt(patient.blood_pressure_systolic || 0),
+    parseInt(patient.blood_pressure_diastolic || 0),
+    parseFloat(patient.hemoglobin_level || 0),
+    parseFloat(patient.pre_pregnancy_bmi || 0),
+    parseInt(patient.number_of_prenatal_visits || 0)
+  ];
+
+  fetch("http://localhost:5000/AI_Report", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sample_data: {
+        age: parseInt(patient.age || 0),
+        pre_pregnancy_bmi: parseFloat(patient.pre_pregnancy_bmi || 0),
+        gestational_age_weeks: parseInt(patient.gestational_age_weeks || 0),
+        blood_pressure_systolic: parseInt(patient.blood_pressure_systolic || 0),
+        blood_pressure_diastolic: parseInt(patient.blood_pressure_diastolic || 0),
+        hemoglobin_level: parseFloat(patient.hemoglobin_level || 0),
+        number_of_prenatal_visits: parseInt(patient.number_of_prenatal_visits || 0),
+        has_diabetes: parseInt(patient.has_diabetes || 0),
+        has_hypertension: parseInt(patient.has_hypertension || 0),
+        smoking_status: parseInt(patient.smoking_status || 0),
+        alcohol_consumption: parseInt(patient.alcohol_consumption || 0)
       },
-      risks: [
-        {risk:"Hypertension Risk", recommendation:"Monitor Blood Pressure"},
-        {risk:"Low Hemoglobin", recommendation:"Increase Iron Intake"},
-        {risk:"Preterm Labor", recommendation:"Regular Prenatal Visits"},
-        {risk:"High BMI", recommendation:"Maintain Healthy Weight"}
-      ]
-    };
-
-    const riskStatus = aiReport.summary.riskinpercent>20?'High Risk': aiReport.summary.riskinpercent>10?'Medium Risk':'Low Risk';
-
-    displayReport(patient.name,{AI_report:aiReport,risk_status:[riskStatus]});
-  },500);
+      sample_risk: sample_risk
+    })
+  })
+  .then(res => res.json())
+  .then(data => displayReport(patient.name, data))
+  .catch(err => {
+    console.error(err);
+    document.getElementById('reportContent').innerHTML =
+      `<p style="color:red;text-align:center;">❌ Failed to fetch AI Report</p>`;
+  });
 }
+
+
 
 function displayReport(patientName, reportData){
   const aiReport = reportData.AI_report;
